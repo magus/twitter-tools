@@ -1,6 +1,7 @@
 // @flow
 import fs from 'fs';
 import Twit from 'twit';
+import ora from 'ora';
 
 // Read in secrets from config/secrets.json
 const SECRETS = require('../config/secrets.json');
@@ -20,7 +21,8 @@ const STATE = {
   followers: [],
 };
 
-T.get('friends/list', { count: 1 })
+const spinner = ora('Retrieving following list...').start();
+T.get('friends/list', { count: 200 })
   .then(({ data }) => {
-    console.log(data);
+    spinner.succeed(`${data.users.length} followers returned`);
   });
