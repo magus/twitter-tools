@@ -70,22 +70,18 @@ function getFriendship(users) {
 function call(endpoint, params) {
   spinner.start(endpoint);
 
-  setTimeout(() => {
-    spinner.succeed();
-  }, 2000);
+  // return Promise.resolve();
+  return (
+    T.get(endpoint, params)
+      .then(({ resp, data }) => {
+        output('resp', resp);
+        output('data', data);
 
-  return Promise.resolve();
-  // return (
-  //   T.get(endpoint, params)
-  //     .then(({ resp, data }) => {
-  //       output('resp', resp);
-  //       output('data', data);
-  //
-  //       spinner.succeed();
-  //
-  //       return data;
-  //     })
-  // );
+        spinner.succeed();
+
+        return data;
+      })
+  );
 }
 
 call('friends/list', { count: 1 }).then(data => {
