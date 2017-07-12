@@ -1,3 +1,4 @@
+// @flow
 import fs from 'fs';
 import Twit from 'twit';
 
@@ -14,4 +15,12 @@ const T = new Twit({
   timeout_ms:           60*1000,
 });
 
-console.log(T);
+
+const STATE = {
+  followers: [],
+};
+
+T.get('friends/list', { count: 1 })
+  .then(({ data }) => {
+    console.log(data);
+  });
