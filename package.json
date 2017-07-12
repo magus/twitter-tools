@@ -1,0 +1,7 @@
+{
+  "name": "twitter-following",
+  "version": "1.0.0",
+  "description": "manage following",
+  "main": "index.js",
+  "license": "MIT"
+}
