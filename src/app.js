@@ -16,13 +16,72 @@ const T = new Twit({
   timeout_ms:           60*1000,
 });
 
+const spinner = ora().start('manage-following initialized...');
+spinner.stopAndPersist({ symbol: '👾 ' });
 
 const STATE = {
   followers: [],
 };
 
-const spinner = ora('Retrieving following list...').start();
-T.get('friends/list', { count: 200 })
-  .then(({ data }) => {
-    spinner.succeed(`${data.users.length} followers returned`);
-  });
+function output(...args) {
+  const symbol = '  ';
+  const text = args.join(' ');
+  spinner.stopAndPersist({ symbol, text });
+}
+
+function outputUser(user) {
+  return `@${user.screen_name} (${user.name})`;
+}
+
+function outputFriendship(friendship) {
+  const follows = ~friendship.connections.indexOf('followed_by') ? '[FOLLOWS] ' : '';
+  return `${outputUser(friendship)} ${follows}`;
+}
+
+// Get all followers and store in state
+// https://dev.twitter.com/rest/reference/get/followers/ids
+
+// Store as a simple `user_id: true` map which will allow fast 'followed_by' lookups
+
+// Persist state to JSON on disk
+// Read in state from JSON on disk
+// Only update followers when explicitly told to update
+
+// Get all friends
+// https://dev.twitter.com/rest/reference/get/friends/ids
+
+// Get users in 100 batches
+// https://dev.twitter.com/rest/reference/get/users/lookup
+
+function getFriendship(users) {
+  const screen_name = users.map(user => user.screen_name).join(',');
+  return (
+    T.get('friendships/lookup', { screen_name })
+    .then(({ data }) => data)
+  );
+}
+
+function call(endpoint, params) {
+  spinner.start(endpoint);
+
+  setTimeout(() => {
+    spinner.succeed();
+  }, 2000);
+
+  return Promise.resolve();
+  // return (
+  //   T.get(endpoint, params)
+  //     .then(({ resp, data }) => {
+  //       output('resp', resp);
+  //       output('data', data);
+  //
+  //       spinner.succeed();
+  //
+  //       return data;
+  //     })
+  // );
+}
+
+call('friends/list', { count: 1 }).then(data => {
+  output('call output', data);
+});
