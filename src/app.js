@@ -3,6 +3,7 @@ import fs from 'fs';
 import Twit from 'twit';
 import ora from 'ora';
 
+const DEBUG = false;
 // Read in secrets from config/secrets.json
 const SECRETS = require('../config/secrets.json');
 
@@ -33,6 +34,12 @@ function output(...args) {
 
   const text = stringifiedArgs.join(' ');
   spinner.stopAndPersist({ symbol, text });
+}
+
+function debug(...args) {
+  if (!DEBUG) return;
+
+  return output(...args);
 }
 
 function outputUser(user) {
@@ -74,8 +81,8 @@ function call(endpoint, params) {
   return (
     T.get(endpoint, params)
       .then(({ resp, data }) => {
-        output('resp', resp);
-        output('data', data);
+        debug('resp', resp);
+        debug('data', data);
 
         spinner.succeed();
 
@@ -85,5 +92,5 @@ function call(endpoint, params) {
 }
 
 call('friends/list', { count: 1 }).then(data => {
-  output('call output', data);
+  debug('call output', data);
 });
