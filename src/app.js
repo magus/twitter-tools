@@ -25,7 +25,13 @@ const STATE = {
 
 function output(...args) {
   const symbol = '  ';
-  const text = args.join(' ');
+  const stringifiedArgs = args.map(arg => {
+    if (typeof(arg) !== 'object') return arg;
+
+    return JSON.stringify(arg, null, 2);
+  });
+
+  const text = stringifiedArgs.join(' ');
   spinner.stopAndPersist({ symbol, text });
 }
 
