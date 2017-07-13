@@ -3,21 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import Twit from 'twit';
 
+import Twitter from 'api/Twitter';
 import FileCache from 'utils/FileCache';
 import Output from 'utils/Output';
-
-// Read in secrets from config/secrets.json
-const SECRETS = require('../config/secrets.json');
-
-const T = new Twit({
-  consumer_key:         SECRETS.consumer_key,
-  consumer_secret:      SECRETS.consumer_secret,
-  access_token:         SECRETS.access_token,
-  access_token_secret:  SECRETS.access_token_secret,
-
-  // optional HTTP request timeout to apply to all requests.
-  timeout_ms:           60*1000,
-});
 
 
 const STATE = {
@@ -53,7 +41,7 @@ function outputFriendship(friendship) {
 
 const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
   return (
-    call(...args)
+    Twitter.get(...args)
     .then(data => {
       write(data);
       return data;
@@ -61,25 +49,6 @@ const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
   );
 });
 
-
-function call(endpoint, params) {
-  Output.start(endpoint, params);
-
-  return (
-    T.get(endpoint, params)
-    .then(({ resp, data }) => {
-      if (resp.statusCode !== 200) {
-        Output.error(resp.statusCode, endpoint, params);
-        Output.debug('resp', resp);
-        Output.debug('data', data);
-      }
-
-      Output.done();
-
-      return data;
-    })
-  );
-}
 
 debugger;
 
