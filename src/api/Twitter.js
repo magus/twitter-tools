@@ -19,11 +19,14 @@ const T = new Twit({
   timeout_ms:           60*1000,
 });
 
-function get(endpoint: string, params: any) {
+
+type RequestMethod = 'get' | 'post';
+
+function request(type: RequestMethod, endpoint: string, params: any) {
   Output.start(endpoint);
 
   return (
-    T.get(endpoint, params)
+    T[type](endpoint, params)
     .then(({ resp, data }) => {
       if (resp.statusCode !== 200) {
         Output.error(resp.statusCode, endpoint, params);
@@ -39,5 +42,6 @@ function get(endpoint: string, params: any) {
 }
 
 export default {
-  get,
+  get: request.bind(null, 'get'),
+  post: request.bind(null, 'post'),
 }
