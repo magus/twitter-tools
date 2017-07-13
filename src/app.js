@@ -90,8 +90,6 @@ function call(endpoint, params) {
 
 debugger;
 
-Output.error('test', 56, 'yes', false);
-
-cache.check('friends/list', { count: 1 }).then(data => {
+cache.get('friends/list', { count: 1 }).then(data => {
   Output.debug('call output', data);
 });

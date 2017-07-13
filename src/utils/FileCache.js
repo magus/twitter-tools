@@ -7,6 +7,26 @@ import Output from 'utils/Output';
 type WriteCacheFunc = (content: any) => void;
 type PopulateCacheFunc = (write: WriteCacheFunc, ...args: Array<*>) => Promise<*>;
 
+function argsFilename(args: Array<*>) {
+  const sanitizedArgs = args.map(arg => {
+    if (typeof arg === 'string') return arg.replace(/\//g, '-');
+
+    if (typeof arg === 'object') {
+      return JSON.stringify(arg).replace(/(\{|\}|\"|\:)/g, '_')
+    }
+
+    return arg;
+  });
+
+  return sanitizedArgs.join('--');
+}
+
+function buildWriter(filepath: string): WriteCacheFunc {
+  return content => {
+    fs.writeFileSync(filepath, JSON.stringify(content));
+  };
+}
+
 class FileCache {
   _path: string;
   _populateCache: PopulateCacheFunc;
@@ -16,32 +36,14 @@ class FileCache {
   constructor(path: string, populateCache: PopulateCacheFunc) {
     this._path = path;
     this._populateCache = populateCache;
-
-    this.writeCache = path => content => {
-      fs.writeFileSync(path, JSON.stringify(content));
-    };
   }
 
-  key(...args: Array<*>) {
-    const sanitizedArgs = args.map(arg => {
-      if (typeof arg === 'string') return arg.replace(/\//g, '-');
-
-      if (typeof arg === 'object') {
-        return JSON.stringify(arg).replace(/(\{|\}|\"|\:)/g, '_')
-      }
-
-      return arg;
-    });
-
-    return sanitizedArgs.join('--');
-  }
-
-  path(key: string) {
+  path(key: string): string {
     return path.join(this._path, `${key}.json`);
   }
 
-  check(...args: Array<*>): Promise<*> {
-    const key = this.key(...args);
+  get(...args: Array<*>): Promise<*> {
+    const key = argsFilename(args);
     const path = this.path(key);
 
     if (fs.existsSync(path)) {
@@ -51,10 +53,17 @@ class FileCache {
       return Promise.resolve(require(path));
     }
 
-    Output.debug('no cache', key);
+    return this.update(...args);
+  }
+
+  update(...args: Array<*>): Promise<*> {
+    const key = argsFilename(args);
+    const path = this.path(key);
+
+    Output.debug('cache update', key);
 
     // populate cache
-    const write = this.writeCache(path);
+    const write = buildWriter(path);
     return this._populateCache(write, ...args);
   }
 }
