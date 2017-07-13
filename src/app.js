@@ -16,13 +16,9 @@ function outputFriendship(friendship) {
   return `${outputUser(friendship)} ${follows}`;
 }
 
-
-
-// Get all followers and store in state
-// https://dev.twitter.com/rest/reference/get/followers/ids
-
-// Store as a simple `user_id: true` map which will allow fast 'followed_by' lookups
-
+//////////////////////////////////////////////////
+//                      MAIN                    //
+//////////////////////////////////////////////////
 
 debugger;
 
@@ -32,8 +28,18 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   Output.info(ids.length, 'ids returned');
 
   // Use ids to lookup user entities
-  return getUsers(ids);
+  return getUsers(ids, 'users');
+}).then(() => {
+  // Get all followers and store in state
+  // https://dev.twitter.com/rest/reference/get/followers/ids
+  return Cache.get('followers/ids', { count: 5000 }).then(({ ids }) => {
+    Output.info(ids.length, 'ids returned');
+
+    // Store as a simple `user_id: true` map which will allow fast 'followed_by' lookups
+    return getUsers(ids, 'followers');
+  });
 }).then(() => {
   // Do stuff with user objects
   Output.info('State.users', Object.keys(State.users).length);
+  Output.info('State.followers', Object.keys(State.followers).length);
 });

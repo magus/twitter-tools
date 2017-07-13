@@ -7,7 +7,7 @@ const USERS_LOOKUP_MAX = 100;
 
 // Get users in batches
 // https://dev.twitter.com/rest/reference/get/users/lookup
-export default function getUsers(ids: Array<number>, index?: number = 0, chunk?: number = USERS_LOOKUP_MAX) {
+export default function getUsers(ids: Array<number>, stateKey: string, index?: number = 0, chunk?: number = USERS_LOOKUP_MAX) {
   const remaining = ids.length - index;
 
   if (remaining === 0) return Output.info('getUsers retrieved all', ids.length, 'ids');
@@ -24,10 +24,10 @@ export default function getUsers(ids: Array<number>, index?: number = 0, chunk?:
     Output.debug(users.length, 'users returned by getUsers');
     users.forEach(user => {
       // Add to users map
-      State.users[user.id] = user;
+      State[stateKey][user.id] = user;
     });
 
     // next call
-    return getUsers(ids, nextIndex);
+    return getUsers(ids, stateKey, nextIndex);
   });
 }
