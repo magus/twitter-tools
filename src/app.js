@@ -4,20 +4,10 @@ import Cache from 'store/cache';
 
 import getUsers from 'api/getUsers';
 
+import User from 'models/User';
+
 import Output from 'utils/Output';
 
-
-function outputUser(user) {
-  return `@${user.screen_name} (${user.name})`;
-}
-
-function doesFollowBack(user) {
-  return !!State.followers[user.id];
-}
-
-function outputFriendship(user) {
-  return `${doesFollowBack(user) ? '[F]' : ' '} ${outputUser(user)}`;
-}
 
 //////////////////////////////////////////////////
 //                      MAIN                    //
@@ -51,11 +41,10 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
 
   const notFollowingBack = [];
   State.following.forEach(id => {
-    const user = State.users[id];
-    if (!user) return Output.debug(id, 'user not in state');
+    if (!State.users[id]) return Output.debug(id, 'user not in state');
 
-    const followBack = doesFollowBack(user);
-    if (!followBack) notFollowingBack.push(user);
+    const user = new User(State.users[id]);
+    if (!user.doesFollowBack()) notFollowingBack.push(user);
   });
 
   Output.info(notFollowingBack.length, 'users not following back');
@@ -63,7 +52,9 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   let index = 0;
   setInterval(() => {
     const user = notFollowingBack[index];
-    Output.info(outputFriendship(user));
+
+    // Prompt for unfollow make it very easy
+    Output.info(user.out());
 
     // next user
     index++;
