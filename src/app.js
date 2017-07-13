@@ -2,9 +2,10 @@
 import fs from 'fs';
 import path from 'path';
 import Twit from 'twit';
-import ora from 'ora';
 
-const DEBUG = true;
+import FileCache from 'utils/FileCache';
+import Output from 'utils/Output';
+
 // Read in secrets from config/secrets.json
 const SECRETS = require('../config/secrets.json');
 
@@ -18,39 +19,11 @@ const T = new Twit({
   timeout_ms:           60*1000,
 });
 
-const spinner = ora().start('manage-following initialized...');
-spinner.stopAndPersist({ symbol: '👾 ' });
 
 const STATE = {
   followers: [],
 };
 
-function outputPersist(symbol = ' ', ...args) {
-  symbol += ' ';
-
-  const stringifiedArgs = args.map(arg => {
-    if (typeof(arg) !== 'object') return arg;
-
-    return JSON.stringify(arg, null, 2);
-  });
-
-  const text = stringifiedArgs.join(' ');
-  spinner.stopAndPersist({ symbol, text });
-}
-
-function output(...args) {
-  return outputPersist(...args);
-}
-
-function debug(...args) {
-  if (!DEBUG) return;
-
-  return output(...args);
-}
-
-function error(...args) {
-  return outputPersist('❗️ ', ...args);
-}
 
 function outputUser(user) {
   return `@${user.screen_name} (${user.name})`;
@@ -85,60 +58,6 @@ function getFriendship(users) {
 }
 
 
-type WriteCacheFunc = (content: any) => void;
-
-class FileCache {
-  _path: string;
-  _populateCache: (write: WriteCacheFunc, ...args: Array<*>) => Promise<*>;
-
-  writeCache: (path: string) => WriteCacheFunc;
-
-  constructor(path, populateCache) {
-    this._path = path;
-    this._populateCache = populateCache;
-
-    this.writeCache = path => content => {
-      fs.writeFileSync(path, JSON.stringify(content));
-    };
-  }
-
-  key(...args) {
-    const sanitizedArgs = args.map(arg => {
-      if (typeof arg === 'string') return arg.replace(/\//g, '-');
-
-      if (typeof arg === 'object') {
-        return JSON.stringify(arg).replace(/(\{|\}|\"|\:)/g, '_')
-      }
-
-      return arg;
-    });
-
-    return sanitizedArgs.join('--');
-  }
-
-  path(key) {
-    return path.join(this._path, `${key}.json`);
-  }
-
-  check(...args): Promise<*> {
-    const key = this.key(...args);
-    const path = this.path(key);
-
-    if (fs.existsSync(path)) {
-      debug('cache hit', key);
-
-      // $FlowFixMe
-      return Promise.resolve(require(path));
-    }
-
-    debug('no cache', key);
-
-    // populate cache
-    const write = this.writeCache(path);
-    return this._populateCache(write, ...args);
-  }
-}
-
 const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
   return (
     call(...args)
@@ -151,18 +70,18 @@ const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
 
 
 function call(endpoint, params) {
-  spinner.start(endpoint);
+  Output.start(endpoint, params);
 
   return (
     T.get(endpoint, params)
     .then(({ resp, data }) => {
       if (resp.statusCode !== 200) {
-        error(resp.statusCode, endpoint, params);
-        debug('resp', resp);
-        debug('data', data);
+        Output.error(resp.statusCode, endpoint, params);
+        Output.debug('resp', resp);
+        Output.debug('data', data);
       }
 
-      spinner.succeed();
+      Output.done();
 
       return data;
     })
@@ -171,6 +90,8 @@ function call(endpoint, params) {
 
 debugger;
 
+Output.error('test', 56, 'yes', false);
+
 cache.check('friends/list', { count: 1 }).then(data => {
-  debug('call output', data);
+  Output.debug('call output', data);
 });
