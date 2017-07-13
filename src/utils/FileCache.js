@@ -5,7 +5,7 @@ import path from 'path';
 import Output from 'utils/Output';
 
 type WriteCacheFunc = (content: any) => void;
-type PopulateCacheFunc = (write: WriteCacheFunc, ...args: Array<*>) => Promise<*>;
+type PopulateCacheFunc = (...args: Array<*>) => Promise<*>;
 
 function argsFilename(args: Array<*>) {
   const sanitizedArgs = args.map(arg => {
@@ -64,7 +64,13 @@ class FileCache {
 
     // populate cache
     const write = buildWriter(path);
-    return this._populateCache(write, ...args);
+    return (
+      this._populateCache(...args)
+      .then(data => {
+        write(data);
+        return data;
+      })
+    );
   }
 }
 

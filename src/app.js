@@ -38,17 +38,7 @@ function outputFriendship(friendship) {
 // https://dev.twitter.com/rest/reference/get/users/lookup
 
 
-
-const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
-  return (
-    Twitter.get(...args)
-    .then(data => {
-      write(data);
-      return data;
-    })
-  );
-});
-
+const cache = new FileCache(`${__dirname}/../cache`, Twitter.get);
 
 debugger;
 
