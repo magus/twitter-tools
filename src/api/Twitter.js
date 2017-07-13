@@ -20,7 +20,7 @@ const T = new Twit({
 });
 
 function get(endpoint: string, params: any) {
-  Output.start(endpoint, params);
+  Output.start(endpoint);
 
   return (
     T.get(endpoint, params)
