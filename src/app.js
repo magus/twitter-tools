@@ -27,10 +27,6 @@ function outputFriendship(friendship) {
 
 // Store as a simple `user_id: true` map which will allow fast 'followed_by' lookups
 
-// Persist state to JSON on disk
-// Read in state from JSON on disk
-// Only update followers when explicitly told to update
-
 // Get all friends
 // https://dev.twitter.com/rest/reference/get/friends/ids
 
@@ -42,6 +38,15 @@ const cache = new FileCache(`${__dirname}/../cache`, Twitter.get);
 
 debugger;
 
-cache.get('friends/list', { count: 1 }).then(data => {
-  Output.debug('call output', data);
+function getUsers(ids) {
+  const user_id = ids.join(',');
+  cache.get('users/lookup', { user_id, count: 100 }).then(users => {
+    Output.debug(users.length, 'users returned by getUsers');
+  });
+}
+
+cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
+  Output.debug(ids.length, 'ids returned');
+
+  getUsers(ids.slice(0, 50))
 });
