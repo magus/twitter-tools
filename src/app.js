@@ -11,9 +11,12 @@ function outputUser(user) {
   return `@${user.screen_name} (${user.name})`;
 }
 
-function outputFriendship(friendship) {
-  const follows = ~friendship.connections.indexOf('followed_by') ? '[FOLLOWS] ' : '';
-  return `${outputUser(friendship)} ${follows}`;
+function doesFollowBack(user) {
+  return !!State.followers[user.id];
+}
+
+function outputFriendship(user) {
+  return `${doesFollowBack(user) ? '[F]' : ' '} ${outputUser(user)}`;
 }
 
 //////////////////////////////////////////////////
@@ -42,9 +45,29 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   });
 }).then(() => {
   // Do stuff with user objects
-  Output.info('State.following', Object.keys(State.following).length);
+  Output.info('State.following', State.following.length);
   Output.info('State.users', Object.keys(State.users).length);
   Output.info('State.followers', Object.keys(State.followers).length);
+
+  const notFollowingBack = [];
+  State.following.forEach(id => {
+    const user = State.users[id];
+    if (!user) return Output.debug(id, 'user not in state');
+
+    const followBack = doesFollowBack(user);
+    if (!followBack) notFollowingBack.push(user);
+  });
+
+  Output.info(notFollowingBack.length, 'users not following back');
+
+  let index = 0;
+  setInterval(() => {
+    const user = notFollowingBack[index];
+    Output.info(outputFriendship(user));
+
+    // next user
+    index++;
+  }, 1000)
 
 
 });
