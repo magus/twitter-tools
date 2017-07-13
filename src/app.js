@@ -27,6 +27,8 @@ debugger;
 Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   Output.info(ids.length, 'ids returned');
 
+  State.following = [].concat(ids);
+
   // Use ids to lookup user entities
   return getUsers(ids, 'users');
 }).then(() => {
@@ -40,6 +42,9 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   });
 }).then(() => {
   // Do stuff with user objects
+  Output.info('State.following', Object.keys(State.following).length);
   Output.info('State.users', Object.keys(State.users).length);
   Output.info('State.followers', Object.keys(State.followers).length);
+
+
 });
