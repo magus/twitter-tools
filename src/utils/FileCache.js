@@ -7,13 +7,27 @@ import Output from 'utils/Output';
 type WriteCacheFunc = (content: any) => void;
 type PopulateCacheFunc = (...args: Array<*>) => Promise<*>;
 
+
+function hash(value: string) {
+  let hash = 0;
+
+  if (value.length === 0) return hash;
+
+  for (let i = 0; i < value.length; i++) {
+    let char = value.charCodeAt(i);
+    hash = ((hash<<5)-hash)+char;
+    // Convert to 32bit integer
+    hash = hash & hash;
+  }
+
+  return hash;
+}
+
 function argsFilename(args: Array<*>) {
   const sanitizedArgs = args.map(arg => {
-    if (typeof arg === 'string') return arg.replace(/\//g, '-');
+    if (typeof arg === 'string') return arg.replace(/(\/)/g, '-');
 
-    if (typeof arg === 'object') {
-      return JSON.stringify(arg).replace(/(\{|\}|\"|\:)/g, '_')
-    }
+    if (typeof arg === 'object') return hash(JSON.stringify(arg))
 
     return arg;
   });
