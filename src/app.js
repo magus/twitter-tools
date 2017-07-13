@@ -7,9 +7,13 @@ import Twitter from 'api/Twitter';
 import FileCache from 'utils/FileCache';
 import Output from 'utils/Output';
 
+type UserMap = { [id: number]: any };
+type State = {
+  users: UserMap,
+};
 
-const STATE = {
-  followers: [],
+const STATE: State = {
+  users: {},
 };
 
 
@@ -38,15 +42,36 @@ const cache = new FileCache(`${__dirname}/../cache`, Twitter.get);
 
 debugger;
 
-function getUsers(ids) {
-  const user_id = ids.join(',');
-  cache.get('users/lookup', { user_id, count: 100 }).then(users => {
+const USERS_LOOKUP_MAX = 100;
+
+function getUsers(ids: Array<number>, index?: number = 0) {
+  const remaining = ids.length - index;
+
+  if (remaining === 0) return Output.info('getUsers retrieved all', ids.length, 'ids');
+
+  const count = remaining > USERS_LOOKUP_MAX ? USERS_LOOKUP_MAX : remaining;
+  const nextIndex = index + count;
+
+  Output.info('ids', `[${index}:${nextIndex}]`);
+
+  const selectedIds = ids.slice(index, nextIndex);
+
+  const user_id = selectedIds.join(',');
+  return cache.get('users/lookup', { user_id }).then(users => {
     Output.debug(users.length, 'users returned by getUsers');
+    users.forEach(user => {
+      // Add to users map
+      STATE.users[user.id] = user;
+    });
+
+    // next call
+    return getUsers(ids, nextIndex);
   });
 }
 
 cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
-  Output.debug(ids.length, 'ids returned');
-
-  getUsers(ids.slice(0, 50))
+  Output.info(ids.length, 'ids returned');
+  return getUsers(ids);
+}).then(() => {
+  Output.info('STATE.users', Object.keys(STATE.users).length);
 });
