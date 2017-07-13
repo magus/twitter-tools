@@ -49,13 +49,6 @@ function outputFriendship(friendship) {
 // Get users in 100 batches
 // https://dev.twitter.com/rest/reference/get/users/lookup
 
-function getFriendship(users) {
-  const screen_name = users.map(user => user.screen_name).join(',');
-  return (
-    T.get('friendships/lookup', { screen_name })
-    .then(({ data }) => data)
-  );
-}
 
 
 const cache = new FileCache(`${__dirname}/../cache`, (write, ...args) => {
