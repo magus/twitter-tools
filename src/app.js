@@ -1,4 +1,6 @@
 // @flow
+import readline from 'readline';
+
 import State from 'store/state';
 import Cache from 'store/cache';
 
@@ -14,6 +16,26 @@ import Output from 'utils/Output';
 //////////////////////////////////////////////////
 
 debugger;
+
+const prompt = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function promptUnfollow(user) {
+  Output.info(user.out());
+
+  return new Promise(resolve => {
+    prompt.question(`Unfollow? [y/n]\n> `, choice => {
+      if (choice !== 'y') return resolve();
+
+      Output.debug('unfollow');
+
+      resolve();
+    });
+  });
+}
+
 
 // Get all friends
 // https://dev.twitter.com/rest/reference/get/friends/ids
@@ -50,15 +72,26 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   Output.info(notFollowingBack.length, 'users not following back');
 
   let index = 0;
-  setInterval(() => {
-    const user = notFollowingBack[index];
+  let waiting = false;
+  let interval = setInterval(() => {
+    if (!notFollowingBack[index]) return clearInterval(interval);
+
+    // lock
+    if (waiting) {
+      // Output.debug('locked.');
+      return;
+    }
+
+    Output.debug('locking...');
+    waiting = true;
 
     // Prompt for unfollow make it very easy
-    Output.info(user.out());
+    promptUnfollow(notFollowingBack[index]).then(() => {
+      Output.debug('next user');
 
-    // next user
-    index++;
-  }, 1000)
-
-
+      // next user
+      index++;
+      waiting = false;
+    });
+  }, 2000);
 });
