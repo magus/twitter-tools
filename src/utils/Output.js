@@ -19,13 +19,17 @@ function stringifyArgs(args: Args): string {
 }
 
 function outputPersist(symbol = ' ', ...args: Args) {
-  symbol += ' ';
   const text = stringifyArgs(args);
+
+  // Ensure empty args write nothing
+  if (!text) spinner.text = '';
+
+  spinner.start(text);
   spinner.stopAndPersist({ symbol, text });
 }
 
 function out(...args: Args) {
-  return outputPersist(...args);
+  return outputPersist(undefined, ...args);
 }
 
 function debug(...args: Args) {
@@ -39,19 +43,23 @@ function start(...args: Args): void {
 }
 
 function done(...args: Args): void {
-  spinner.succeed(stringifyArgs(args));
+  spinner.start(stringifyArgs(args));
+  spinner.succeed();
 }
 
 function error(...args: Args): void {
-  spinner.fail(stringifyArgs(args));
+  spinner.start(stringifyArgs(args));
+  spinner.fail();
 }
 
 function warn(...args: Args): void {
-  spinner.warn(stringifyArgs(args));
+  spinner.start(stringifyArgs(args));
+  spinner.warn();
 }
 
 function info(...args: Args): void {
-  spinner.info(stringifyArgs(args));
+  spinner.start(stringifyArgs(args));
+  spinner.info();
 }
 
 export default {
