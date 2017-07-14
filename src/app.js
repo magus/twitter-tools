@@ -22,7 +22,9 @@ function promptUnfollow(user) {
   return promptKey('🤔  Unfollow [y/n]', key => /^y|n$/i.test(key)).then(key => {
     if (key !== 'y') return;
 
-    Output.debug('unfollow');
+    return user.unfollow().then(() => {
+      Output.error(`Unfollowed ${user.out()}`);
+    });
   });
 }
 

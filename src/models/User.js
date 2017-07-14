@@ -1,4 +1,5 @@
 // @flow
+import Twitter from 'api/Twitter';
 import State from 'store/state';
 
 class User {
@@ -19,6 +20,11 @@ class User {
 
   doesFollowBack() {
     return !!State.followers[this._user.id];
+  }
+
+  unfollow() {
+    const user_id = this._user.id;
+    return Twitter.post('friendships/destroy', { user_id });
   }
 }
 
