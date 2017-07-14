@@ -3,7 +3,7 @@ import Output from 'utils/Output';
 
 type VerifyStringFunc = (key: string) => boolean;
 
-export default function promptKey(isValidKey: VerifyStringFunc) {
+export default function promptKey(prompt: string, isValidKey: VerifyStringFunc) {
   const stdin = process.stdin;
 
   // without this, we would only get streams once enter is pressed
@@ -16,6 +16,8 @@ export default function promptKey(isValidKey: VerifyStringFunc) {
 
   // i don't want binary, do you?
   stdin.setEncoding( 'utf8' );
+
+  Output.start(prompt);
 
   return new Promise(resolve => {
     const handleResolve = key => {
