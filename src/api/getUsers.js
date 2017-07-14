@@ -8,14 +8,16 @@ const USERS_LOOKUP_MAX = 100;
 // Get users in batches
 // https://dev.twitter.com/rest/reference/get/users/lookup
 export default function getUsers(ids: Array<number>, stateKey: string, index?: number = 0, chunk?: number = USERS_LOOKUP_MAX) {
+  Output.start('Retrieving users...');
+
   const remaining = ids.length - index;
 
-  if (remaining === 0) return Output.info('getUsers retrieved all', ids.length, 'ids');
+  if (remaining === 0) return Output.debug('getUsers retrieved all', ids.length, 'ids');
 
   const count = remaining > USERS_LOOKUP_MAX ? USERS_LOOKUP_MAX : remaining;
   const nextIndex = index + count;
 
-  Output.info('ids', `[${index}:${nextIndex}]`);
+  Output.start('ids', `[${index}:${nextIndex}]`);
 
   const selectedIds = ids.slice(index, nextIndex);
 

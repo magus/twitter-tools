@@ -17,9 +17,7 @@ debugger;
 
 
 function promptUnfollow(user) {
-  Output.info(user.out());
-
-  return promptKey('🤔  Unfollow [y/n]', key => /^y|n$/i.test(key)).then(key => {
+  return promptKey(`🤔  ${user.out()} [y/n]`, key => /^y|n$/i.test(key)).then(key => {
     if (key !== 'y') return;
 
     return user.unfollow().then(() => {
@@ -32,7 +30,7 @@ function promptUnfollow(user) {
 // Get all friends
 // https://dev.twitter.com/rest/reference/get/friends/ids
 Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
-  Output.info(ids.length, 'ids returned');
+  Output.info(ids.length, 'friends returned');
 
   State.following = [].concat(ids);
 
@@ -42,13 +40,14 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
   // Get all followers and store in state
   // https://dev.twitter.com/rest/reference/get/followers/ids
   return Cache.get('followers/ids', { count: 5000 }).then(({ ids }) => {
-    Output.info(ids.length, 'ids returned');
+    Output.info(ids.length, 'followers returned');
 
     // Store as a simple `user_id: true` map which will allow fast 'followed_by' lookups
     return getUsers(ids, 'followers');
   });
 }).then(() => {
   // Do stuff with user objects
+  Output.out();
   Output.info('State.following', State.following.length);
   Output.info('State.users', Object.keys(State.users).length);
   Output.info('State.followers', Object.keys(State.followers).length);
@@ -61,7 +60,10 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
     if (!user.doesFollowBack()) notFollowingBack.push(user);
   });
 
-  Output.info(notFollowingBack.length, 'users not following back');
+  Output.out();
+  Output.warn(notFollowingBack.length, 'users not following back');
+  Output.info('Choose their fate!');
+  Output.out();
 
   let index = 0;
   let waiting = false;
