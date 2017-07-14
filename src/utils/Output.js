@@ -3,8 +3,8 @@ import ora from 'ora';
 
 const DEBUG = true;
 
-const spinner = ora().start('manage-following output initialized...');
-spinner.stopAndPersist({ symbol: '👾 ' });
+const spinner = ora().start();
+spinner.stopAndPersist({ symbol: '👾 ', text: 'manage-following output initialized...' });
 
 type Args = Array<*>;
 
