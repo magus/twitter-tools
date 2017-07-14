@@ -1,4 +1,4 @@
-# twitter-following
+# twitter-tools
 manage following
 
 # Setup
