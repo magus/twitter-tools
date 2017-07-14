@@ -1,6 +1,4 @@
 // @flow
-import readline from 'readline';
-
 import State from 'store/state';
 import Cache from 'store/cache';
 
@@ -8,31 +6,24 @@ import getUsers from 'api/getUsers';
 
 import User from 'models/User';
 
+import promptKey from 'utils/promptKey';
 import Output from 'utils/Output';
 
 
 //////////////////////////////////////////////////
 //                      MAIN                    //
 //////////////////////////////////////////////////
-
 debugger;
 
-const prompt = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 function promptUnfollow(user) {
   Output.info(user.out());
+  Output.out('Unfollow? [y/n]');
 
-  return new Promise(resolve => {
-    prompt.question(`Unfollow? [y/n]\n> `, choice => {
-      if (choice !== 'y') return resolve();
+  return promptKey(key => /^y|n$/i.test(key)).then(key => {
+    if (key !== 'y') return;
 
-      Output.debug('unfollow');
-
-      resolve();
-    });
+    Output.debug('unfollow');
   });
 }
 
