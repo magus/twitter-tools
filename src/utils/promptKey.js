@@ -34,7 +34,7 @@ export default function promptKey(prompt: string, isValidKey: VerifyStringFunc) 
 
     const onData = key => {
       // ctrl+c exits prompt
-      if (key === '\u0003') return handleResolve(null);
+      if (key === '\u0003') return process.exit();
 
       // prompt until valid key
       if (!isValidKey(key)) {
