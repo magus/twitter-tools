@@ -18,9 +18,8 @@ debugger;
 
 function promptUnfollow(user) {
   Output.info(user.out());
-  Output.out('Unfollow? [y/n]');
 
-  return promptKey(key => /^y|n$/i.test(key)).then(key => {
+  return promptKey('🤔  Unfollow [y/n]', key => /^y|n$/i.test(key)).then(key => {
     if (key !== 'y') return;
 
     Output.debug('unfollow');
@@ -84,5 +83,5 @@ Cache.get('friends/ids', { count: 5000 }).then(({ ids }) => {
       index++;
       waiting = false;
     });
-  }, 2000);
+  }, 16);
 });

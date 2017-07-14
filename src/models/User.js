@@ -13,8 +13,8 @@ class User {
   }
 
   out() {
-    const followBackTag = this.doesFollowBack() ? '[F]' : '   ';
-    return `${followBackTag} ${this.name()}`;
+    const followBackTag = this.doesFollowBack() ? '[F] ' : '';
+    return `${followBackTag}${this.name()}`;
   }
 
   doesFollowBack() {

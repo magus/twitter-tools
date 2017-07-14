@@ -1,7 +1,7 @@
 // @flow
 import ora from 'ora';
 
-const DEBUG = true;
+const DEBUG = false;
 
 const spinner = ora().start();
 spinner.stopAndPersist({ symbol: '👾 ', text: 'manage-following output initialized...' });
