@@ -12,6 +12,7 @@
     "babel-cli": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
+    "lodash": "^4.17.4",
     "ora": "^1.3.0",
     "twit": "^2.2.9"
   },
