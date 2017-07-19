@@ -6,8 +6,8 @@ import getUsers from 'api/getUsers';
 
 import User from 'models/User';
 
-import friends from 'scripts/friends';
-import followers from 'scripts/followers';
+import friends from 'api/friends';
+import followers from 'api/followers';
 
 import promptKey from 'utils/promptKey';
 import Output from 'utils/Output';
@@ -22,50 +22,52 @@ function promptUnfollow(user) {
   });
 }
 
-export default function() {
-  // Get all friends
-  friends().then(followers).then(() => {
-    // Do stuff with user objects
-    Output.out();
-    Output.info('State.following', State.following.length);
-    Output.info('State.users', Object.keys(State.users).length);
-    Output.info('State.followers', Object.keys(State.followers).length);
+//////////////////////////////////////////////////
+//                      MAIN                    //
+//////////////////////////////////////////////////
 
-    const notFollowingBack = [];
-    State.following.forEach(id => {
-      if (!State.users[id]) return Output.debug(id, 'user not in state');
+// Get all friends
+friends().then(followers).then(() => {
+  // Do stuff with user objects
+  Output.out();
+  Output.info('State.following', State.following.length);
+  Output.info('State.users', Object.keys(State.users).length);
+  Output.info('State.followers', Object.keys(State.followers).length);
 
-      const user = new User(State.users[id]);
-      if (!user.doesFollowBack()) notFollowingBack.push(user);
-    });
+  const notFollowingBack = [];
+  State.following.forEach(id => {
+    if (!State.users[id]) return Output.debug(id, 'user not in state');
 
-    Output.out();
-    Output.warn(notFollowingBack.length, 'users not following back');
-    Output.info('Choose their fate!');
-    Output.out();
-
-    let index = 0;
-    let waiting = false;
-    let interval = setInterval(() => {
-      if (!notFollowingBack[index]) return clearInterval(interval);
-
-      // lock
-      if (waiting) {
-        // Output.debug('locked.');
-        return;
-      }
-
-      Output.debug('locking...');
-      waiting = true;
-
-      // Prompt for unfollow make it very easy
-      promptUnfollow(notFollowingBack[index]).then(() => {
-        Output.debug('next user');
-
-        // next user
-        index++;
-        waiting = false;
-      });
-    }, 16);
+    const user = new User(State.users[id]);
+    if (!user.doesFollowBack()) notFollowingBack.push(user);
   });
-}
+
+  Output.out();
+  Output.warn(notFollowingBack.length, 'users not following back');
+  Output.info('Choose their fate!');
+  Output.out();
+
+  let index = 0;
+  let waiting = false;
+  let interval = setInterval(() => {
+    if (!notFollowingBack[index]) return clearInterval(interval);
+
+    // lock
+    if (waiting) {
+      // Output.debug('locked.');
+      return;
+    }
+
+    Output.debug('locking...');
+    waiting = true;
+
+    // Prompt for unfollow make it very easy
+    promptUnfollow(notFollowingBack[index]).then(() => {
+      Output.debug('next user');
+
+      // next user
+      index++;
+      waiting = false;
+    });
+  }, 16);
+});
