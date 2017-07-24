@@ -67,8 +67,8 @@ export default {
   debug,
 
   start,
-  done,
-  error,
+  done, success: done,
+  error, fail: error,
   warn,
   info,
 };
