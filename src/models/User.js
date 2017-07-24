@@ -10,7 +10,8 @@ class User {
   }
 
   name() {
-    return `@${this._user.screen_name} (${this._user.name})`;
+    const username = this._user.screen_name;
+    return `@${username} (${this._user.name}) http://twitter.com/${username}`;
   }
 
   out() {
