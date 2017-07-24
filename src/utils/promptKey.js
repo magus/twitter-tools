@@ -39,6 +39,7 @@ export default function promptKey(prompt: string, isValidKey: VerifyStringFunc) 
       // prompt until valid key
       if (!isValidKey(key)) {
         Output.warn('invalid input');
+        Output.start(prompt);
         return;
       }
 
