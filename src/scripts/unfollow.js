@@ -31,6 +31,15 @@ type PromptBinary = {
   search?: BinarySearch,
 };
 
+function random(min, max) {
+  const range = max - min + 1;
+  return Math.floor(Math.random() * range) + min;
+}
+
+function wait(sec) {
+  return new Promise(resolve => setTimeout(resolve, sec * 1000));
+}
+
 function promptUnfollow(user) {
   return promptKey(`🤔  ${user.out()} [y/n/(b)inary unfollow]`, key => /^y|n|b$/i.test(key)).then(key => {
     if (key === 'b') {
@@ -97,6 +106,7 @@ friends().then(followers).then(() => {
   let mode = MODES.ONE_BY_ONE;
   let index = 0;
   let search: BinarySearch = { low: -1, high: -1 };
+  let unfollowGroup = null;
   let waiting = false;
 
   function resetSearch() {
@@ -127,7 +137,6 @@ friends().then(followers).then(() => {
 
       if (search.high < search.low) {
         let unfollowCount = search.high - index;
-        Output.success('Finished.');
 
         if (unfollowCount < 1) {
           Output.error('No users selected, resetting binary search');
@@ -138,26 +147,43 @@ friends().then(followers).then(() => {
           return;
         }
 
-        Output.info(unfollowCount, 'users in unfollow group');
-        Output.info('[START]', notFollowingBack[index].out());
-        Output.info('[END]  ', notFollowingBack[search.high].out());
-        promptKey(`🤔  Does this look correct? [y/n]`, key => /^y|n$/i.test(key)).then(key => {
-          if (key === 'y') {
-            Output.info('Unfollowing', unfollowCount, 'users...');
+        if (!unfollowGroup) {
+          Output.info(unfollowCount, 'users in unfollow group');
+          Output.info('[START]', notFollowingBack[index].out());
+          Output.info('[END]  ', notFollowingBack[search.high].out());
+          promptKey(`🤔  Does this look correct? [y/n]`, key => /^y|n$/i.test(key)).then(key => {
+            if (key === 'y') {
+              Output.info('Unfollowing', unfollowCount, 'users...');
+              unfollowGroup = notFollowingBack.slice(index, search.high + 1);
+            } else {
+              Output.error('Resetting binary search...');
+              resetSearch();
+            }
+          }).then(() => {
+            // unlock
+            waiting = false;
+          });
 
-            // start at index following binary search
-            index = search.high + 1;
+          return;
+        }
 
-            Output.done('Unfollowed', unfollowCount, 'users');
-          } else {
-            Output.error('Resetting binary search...');
-          }
-        }).then(() => {
-          resetSearch();
+        if (!unfollowGroup.length) {
+          // start at index following binary search
+          index = search.high + 1;
 
-          // unlock
-          waiting = false;
-        });
+          Output.done('Unfollowed', unfollowCount, 'users');
+        } else {
+          // Remove user and unfollow
+          const user = unfollowGroup.shift();
+          wait(random(2, 8)).then(() => {
+            user.unfollow();
+          }).then(() => {
+            Output.error(`Unfollowed ${user.out()}`);
+          }).then(() => {
+            // unlock
+            waiting = false;
+          });
+        }
       } else {
         promptUnfollowBinary(notFollowingBack, search).then(promptReturn => {
           if (promptReturn.mode === MODES.ONE_BY_ONE) {
