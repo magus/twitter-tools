@@ -12,6 +12,8 @@ import followers from 'api/followers';
 import promptKey from 'utils/promptKey';
 import keyMirror from 'utils/keyMirror';
 import Output from 'utils/Output';
+import random from 'utils/random';
+import wait from 'utils/wait';
 
 type ModesType = {
   [modeName: string]: string,
@@ -30,15 +32,6 @@ type PromptBinary = {
   mode?: string,
   search?: BinarySearch,
 };
-
-function random(min, max) {
-  const range = max - min + 1;
-  return Math.floor(Math.random() * range) + min;
-}
-
-function wait(sec) {
-  return new Promise(resolve => setTimeout(resolve, sec * 1000));
-}
 
 function promptUnfollow(user) {
   return promptKey(`🤔  ${user.out()} [y/n/(b)inary unfollow]`, key => /^y|n|b$/i.test(key)).then(key => {

@@ -7,29 +7,60 @@ const USERS_LOOKUP_MAX = 100;
 
 // Get users in batches
 // https://dev.twitter.com/rest/reference/get/users/lookup
-export default function getUsers(ids: Array<number>, stateKey: string, index?: number = 0, chunk?: number = USERS_LOOKUP_MAX) {
+export function getUsers(ids: Array<number>, stateKey?: string): Promise<*> {
   Output.start('Retrieving users...');
 
-  const remaining = ids.length - index;
+  const promises = [];
 
-  if (remaining === 0) return Output.debug('getUsers retrieved all', ids.length, 'ids');
+  let index = 0;
+  while ((ids.length - index) > 0) {
+    const remaining = ids.length - index;
+    const count = remaining > USERS_LOOKUP_MAX ? USERS_LOOKUP_MAX : remaining;
+    const nextIndex = index + count;
 
-  const count = remaining > USERS_LOOKUP_MAX ? USERS_LOOKUP_MAX : remaining;
-  const nextIndex = index + count;
+    Output.start('ids', `[${index}:${nextIndex}]`);
+    const selectedIds = ids.slice(index, nextIndex);
 
-  Output.start('ids', `[${index}:${nextIndex}]`);
+    const user_id = selectedIds.join(',');
 
-  const selectedIds = ids.slice(index, nextIndex);
+    promises.push(
+      Cache.get('users/lookup', { user_id }).then(users => {
+        Output.debug(users.length, 'users returned by getUsers');
 
-  const user_id = selectedIds.join(',');
-  return Cache.get('users/lookup', { user_id }).then(users => {
-    Output.debug(users.length, 'users returned by getUsers');
-    users.forEach(user => {
-      // Add to users map
-      State[stateKey][user.id] = user;
+        // Add to State if specified
+        if (stateKey) {
+          const state = State[stateKey];
+          users.forEach(user => {
+            state[user.id] = user;
+          });
+        }
+
+        return users;
+      })
+    );
+
+    // update index
+    index = nextIndex;
+  }
+
+  Output.debug('promises', promises.length);
+  return Promise.all(promises).then(results => {
+    // join results into single array
+    let allUsers = [];
+    results.forEach(usersResult => {
+      allUsers = allUsers.concat(usersResult);
     });
 
-    // next call
-    return getUsers(ids, stateKey, nextIndex);
+    return allUsers;
+  });
+}
+
+// Get users in batches returning a promise
+export default function _getUsers(ids: Array<number>, stateKey?: string, index?: number = 0, chunk?: number = USERS_LOOKUP_MAX): Promise<*> {
+  Output.start('Retrieving users...');
+
+  return getUsers(ids, stateKey).then(results => {
+    Output.debug('getUsers retrieved all', ids.length, 'ids');
+    return results;
   });
 }
